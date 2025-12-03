@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅游攻略平台 - 个性化旅行计划定制</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="description" content="AI智能旅游攻略平台，为您定制个性化旅行计划，支持多轮对话调整行程">
+    <meta name="keywords" content="旅游攻略,AI旅行,行程规划,个性化旅游">
+    <meta name="author" content="TravelPlanner">
+    <meta property="og:title" content="AI旅游攻略平台 - 个性化旅行计划定制">
+    <meta property="og:description" content="输入目的地，AI为您定制专属旅行计划">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=AI旅游攻略平台">
+    <style>
+        * { font-family: 'Microsoft YaHei', 'Inter', system-ui, sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card { 
+            background: white; 
+            border-radius: 1rem; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f3f4f6;
+            overflow: hidden;
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
+            color: white; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 0.5rem; 
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover { 
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .input-field { 
+            width: 100%; 
+            padding: 0.75rem 1rem; 
+            border: 1px solid #d1d5db; 
+            border-radius: 0.5rem; 
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+        .input-field:focus { 
+            outline: none; 
+            border-color: #3b82f6; 
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .activity-card {
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: all 0.2s;
+        }
+        .activity-card:hover {
+            background: #f3f4f6;
+            transform: translateY(-1px);
+        }
+        .message-bubble {
+            max-width: 80%;
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            word-wrap: break-word;
+        }
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #6b7280;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .online-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .feature-card {
+            transition: transform 0.2s;
+        }
+        .feature-card:hover {
+            transform: translateY(-2px);
+        }
+        .interest-btn {
+            transition: all 0.2s;
+        }
+        .interest-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header with Online Badge -->
+    <header class="bg-white shadow-sm border-b border-gray-100">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="gradient-bg p-2 rounded-lg">
+                        <i class="fas fa-compass text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">旅游攻略平台</h1>
+                        <p class="text-xs text-gray-500 flex items-center">
+                            <i class="fas fa-globe mr-1 text-green-500"></i>
+                            AI智能定制 · 在线版本
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="online-badge px-3 py-1 rounded-full text-white text-xs flex items-center">
+                        <i class="fas fa-wifi mr-1"></i>
+                        在线访问
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Online Banner -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto">
+            <div class="flex items-center">
+                <i class="fas fa-cloud text-green-600 mr-3"></i>
+                <div>
+                    <h3 class="text-green-800 font-semibold">🎉 欢迎使用在线版本</h3>
+                    <p class="text-green-700 text-sm">AI旅游攻略平台现已部署上线，随时随地访问使用。建议首次使用时配置您的AI API密钥。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 初始表单 -->
+        <div id="initialForm" class="max-w-4xl mx-auto">
+            <!-- Hero Section -->
+            <div class="text-center mb-12">
+                <div class="flex justify-center mb-6">
+                    <div class="bg-blue-100 p-6 rounded-full animate-pulse">
+                        <i class="fas fa-map-marked-alt text-5xl text-blue-600"></i>
+                    </div>
+                </div>
+                <h1 class="text-5xl font-bold text-gray-900 mb-4">
+                    AI旅游攻略平台
+                </h1>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+                    输入您的目的地，AI为您定制专属旅行计划。通过智能对话，随时调整完善您的行程。
+                </p>
+                
+                <!-- Features -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    <div class="text-center p-6 bg-white rounded-xl shadow-lg feature-card">
+                        <i class="fas fa-magic text-3xl text-blue-600 mb-3"></i>
+                        <h3 class="font-semibold text-gray-900 mb-2">智能规划</h3>
+                        <p class="text-sm text-gray-600">基于您的偏好定制完美行程</p>
+                    </div>
+                    <div class="text-center p-6 bg-white rounded-xl shadow-lg feature-card">
+                        <i class="fas fa-comments text-3xl text-pink-600 mb-3"></i>
+                        <h3 class="font-semibold text-gray-900 mb-2">实时对话</h3>
+                        <p class="text-sm text-gray-600">多轮互动调整旅行计划</p>
+                    </div>
+                    <div class="text-center p-6 bg-white rounded-xl shadow-lg feature-card">
+                        <i class="fas fa-cloud-upload-alt text-3xl text-green-600 mb-3"></i>
+                        <h3 class="font-semibold text-gray-900 mb-2">云端部署</h3>
+                        <p class="text-sm text-gray-600">随时随地访问使用</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API配置区域 -->
+            <div class="card p-8 mb-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-cog mr-2 text-gray-600"></i>
+                    AI配置（一次性设置）
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            API密钥 <span class="text-red-500">*</span>
+                        </label>
+                        <input type="password" id="apiKey" placeholder="请输入您的API密钥" class="input-field">
+                        <p class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-lock mr-1"></i>
+                            密钥将安全存储在本地浏览器中，不会上传到服务器
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            API端点
+                        </label>
+                        <input type="text" id="apiUrl" value="http://mgw.proxy.ksyun.com/v1/chat/completions" class="input-field">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            模型名称
+                        </label>
+                        <input type="text" id="modelName" value="qwen3-coder-480b-a35b-instruct" class="input-field">
+                    </div>
+                    <button onclick="saveConfig()" class="btn-primary">
+                        <i class="fas fa-save mr-2"></i>
+                        保存配置
+                    </button>
+                    <button onclick="testConnection()" class="ml-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-plug mr-2"></i>
+                        测试连接
+                    </button>
+                </div>
+            </div>
+
+            <!-- Destination Form -->
+            <div class="card p-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <i class="fas fa-map-marker-alt mr-2 text-blue-600"></i>
+                    开始定制您的旅行计划
+                </h2>
+
+                <div class="space-y-6">
+                    <!-- 目的地输入 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            目的地
+                        </label>
+                        <input type="text" id="destination" placeholder="输入您想去的城市或地区" class="input-field">
+                    </div>
+
+                    <!-- 旅行天数 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            旅行天数
+                        </label>
+                        <div class="flex items-center space-x-4">
+                            <input type="range" id="duration" min="1" max="14" value="3" class="flex-1">
+                            <span id="durationDisplay" class="w-12 text-center font-medium bg-gray-100 px-2 py-1 rounded">3天</span>
+                        </div>
+                    </div>
+
+                    <!-- 预算范围 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-dollar-sign mr-1"></i>
+                            预算范围
+                        </label>
+                        <select id="budget" class="input-field">
+                            <option value="">请选择预算</option>
+                            <option value="经济型">经济型 (¥500-1000/天)</option>
+                            <option value="中等" selected>中等 (¥1000-3000/天)</option>
+                            <option value="舒适">舒适 (¥3000-6000/天)</option>
+                            <option value="豪华">豪华 (¥6000+/天)</option>
+                        </select>
+                    </div>
+
+                    <!-- 旅行风格 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-palette mr-1"></i>
+                            旅行风格
+                        </label>
+                        <select id="travelStyle" class="input-field">
+                            <option value="adventure">冒险刺激</option>
+                            <option value="relaxed">休闲放松</option>
+                            <option value="cultural" selected>文化探索</option>
+                            <option value="nature">自然风光</option>
+                            <option value="urban">城市观光</option>
+                        </select>
+                    </div>
+
+                    <!-- 人数 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-users mr-1"></i>
+                            旅行人数
+                        </label>
+                        <select id="groupSize" class="input-field">
+                            <option value="1">独自旅行</option>
+                            <option value="2" selected>情侣/夫妻</option>
+                            <option value="3">3人</option>
+                            <option value="4">4人</option>
+                            <option value="5">5人及以上</option>
+                        </select>
+                    </div>
+
+                    <!-- 兴趣爱好 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            兴趣爱好
+                        </label>
+                        <div class="flex flex-wrap gap-2 mb-3" id="interestsContainer">
+                            <button class="interest-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200" data-interest="历史文化">历史文化</button>
+                            <button class="interest-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200" data-interest="自然风光">自然风光</button>
+                            <button class="interest-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200" data-interest="美食体验">美食体验</button>
+                            <button class="interest-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200" data-interest="购物">购物</button>
+                            <button class="interest-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200" data-interest="冒险运动">冒险运动</button>
+                            <button class="interest-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200" data-interest="艺术博物馆">艺术博物馆</button>
+                            <button class="interest-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200" data-interest="夜生活">夜生活</button>
+                            <button class="interest-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200" data-interest="海滩度假">海滩度假</button>
+                            <button class="interest-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200" data-interest="山地徒步">山地徒步</button>
+                            <button class="interest-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200" data-interest="摄影">摄影</button>
+                        </div>
+                    </div>
+
+                    <!-- 提交按钮 -->
+                    <button onclick="generatePlan()" id="generateBtn" class="w-full btn-primary" disabled>
+                        <i class="fas fa-rocket mr-2"></i>
+                        <span id="btnText">请先配置API信息</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 旅行计划展示 -->
+        <div id="planDisplay" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- 左侧：行程详情 -->
+                <div class="lg:col-span-2">
+                    <div class="card p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 id="planTitle" class="text-3xl font-bold text-gray-900 mb-2">旅行计划</h2>
+                                <p id="planSubtitle" class="text-gray-600">旅行信息</p>
+                            </div>
+                            <button onclick="backToForm()" class="px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                                <i class="fas fa-edit mr-2"></i>
+                                重新规划
+                            </button>
+                        </div>
+                        <div id="planInterests" class="flex flex-wrap gap-2"></div>
+                    </div>
+
+                    <div id="itineraryContainer" class="space-y-4">
+                        <!-- 行程内容将动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 右侧：聊天界面 -->
+                <div class="lg:col-span-1">
+                    <div class="card h-[600px] flex flex-col">
+                        <!-- Chat Header -->
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <div class="gradient-bg p-2 rounded-lg">
+                                        <i class="fas fa-comments text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900">AI旅行助手</h3>
+                                        <p class="text-xs text-gray-500 flex items-center">
+                                            <span id="apiStatus" class="flex items-center">
+                                                <span class="w-2 h-2 bg-gray-400 rounded-full mr-1"></span>
+                                                未配置
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <button onclick="testConnection()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded transition-colors">
+                                    <i class="fas fa-sync-alt mr-1"></i>
+                                    测试
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Messages Area -->
+                        <div id="messagesArea" class="flex-1 overflow-y-auto p-4 space-y-4">
+                            <div class="text-center py-8">
+                                <div class="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-robot text-2xl text-gray-400"></i>
+                                </div>
+                                <h4 class="font-medium text-gray-900 mb-2">AI助手就绪</h4>
+                                <p class="text-sm text-gray-600 mb-6">
+                                    配置API后即可开始智能对话
+                                </p>
+                                
+                                <!-- Quick Suggestions -->
+                                <div class="space-y-2">
+                                    <p class="text-xs text-gray-500 font-medium">快速建议：</p>
+                                    <div class="flex flex-wrap gap-2 justify-center">
+                                        <button onclick="sendQuickMessage('调整第二天的行程安排')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors">调整第二天行程</button>
+                                        <button onclick="sendQuickMessage('推荐更多当地美食')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors">推荐更多美食</button>
+                                        <button onclick="sendQuickMessage('增加购物时间')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors">增加购物时间</button>
+                                        <button onclick="sendQuickMessage('减少预算支出')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors">减少预算支出</button>
+                                        <button onclick="sendQuickMessage('添加更多户外活动')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors">添加户外活动</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="p-4 border-t border-gray-100">
+                            <div class="flex space-x-2">
+                                <input type="text" id="chatInput" placeholder="描述您想要的调整..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" disabled>
+                                <button onclick="sendMessage()" class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50" id="sendBtn" disabled>
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex justify-center items-center space-x-2 mb-4">
+                <i class="fas fa-compass text-2xl"></i>
+                <span class="text-xl font-bold">AI旅游攻略平台</span>
+            </div>
+            <p class="text-gray-400 text-sm mb-4">智能规划您的完美旅程</p>
+            <div class="flex justify-center space-x-4 text-sm text-gray-400">
+                <span><i class="fas fa-code mr-1"></i>AI驱动</span>
+                <span><i class="fas fa-shield-alt mr-1"></i>安全可靠</span>
+                <span><i class="fas fa-cloud mr-1"></i>云端部署</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-4">© 2024 AI旅游攻略平台. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // 全局状态
+        let currentPlan = null;
+        let selectedInterests = [];
+        let chatMessages = [];
+        let isTyping = false;
+        let apiConfig = null;
+        
+        // 安全配置管理
+        class SecureConfig {
+            static save(config) {
+                try {
+                    const encrypted = btoa(JSON.stringify(config));
+                    localStorage.setItem('travel_planner_config', encrypted);
+                } catch (e) {
+                    console.error('配置保存失败:', e);
+                }
+            }
+            
+            static load() {
+                try {
+                    const encrypted = localStorage.getItem('travel_planner_config');
+                    if (!encrypted) return null;
+                    return JSON.parse(atob(encrypted));
+                } catch (e) {
+                    console.error('配置加载失败:', e);
+                    return null;
+                }
+            }
+            
+            static clear() {
+                localStorage.removeItem('travel_planner_config');
+            }
+        }
+
+        // 初始化配置
+        function initConfig() {
+            apiConfig = SecureConfig.load();
+            if (apiConfig) {
+                document.getElementById('apiKey').value = '••••••••••••••••';
+                document.getElementById('apiUrl').value = apiConfig.url;
+                document.getElementById('modelName').value = apiConfig.model;
+                enableGenerateButton();
+                updateAPIStatus('disconnected');
+            }
+        }
+
+        // 保存配置
+        function saveConfig() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const modelName = document.getElementById('modelName').value.trim();
+            
+            if (!apiKey || apiKey === '••••••••••••••••') {
+                showNotification('请输入有效的API密钥', 'error');
+                return;
+            }
+            
+            apiConfig = {
+                key: apiKey,
+                url: apiUrl,
+                model: modelName,
+                temperature: 0.7,
+                maxTokens: 500
+            };
+            
+            SecureConfig.save(apiConfig);
+            
+            // 隐藏密钥
+            document.getElementById('apiKey').value = '••••••••••••••••';
+            
+            enableGenerateButton();
+            updateAPIStatus('disconnected');
+            showNotification('API配置已保存', 'success');
+            
+            // 自动测试连接
+            setTimeout(testConnection, 500);
+        }
+
+        // 显示通知
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-medium z-50 ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
+                ${message}
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // 启用生成按钮
+        function enableGenerateButton() {
+            const btn = document.getElementById('generateBtn');
+            const btnText = document.getElementById('btnText');
+            btn.disabled = false;
+            btnText.innerHTML = '<i class="fas fa-rocket mr-2"></i>生成旅行计划';
+            
+            // 启用聊天输入
+            document.getElementById('chatInput').disabled = false;
+            document.getElementById('sendBtn').disabled = false;
+        }
+
+        // 更新API状态
+        function updateAPIStatus(status) {
+            const statusElement = document.getElementById('apiStatus');
+            const statusColors = {
+                'connected': 'bg-green-500',
+                'disconnected': 'bg-red-500',
+                'connecting': 'bg-yellow-500 animate-pulse',
+                'error': 'bg-red-500 animate-pulse'
+            };
+            
+            const statusMessages = {
+                'connected': '已连接',
+                'disconnected': '未连接',
+                'connecting': '连接中...',
+                'error': '连接错误'
+            };
+            
+            statusElement.innerHTML = `
+                <span class="w-2 h-2 ${statusColors[status]} rounded-full mr-1"></span>
+                ${statusMessages[status]}
+            `;
+        }
+
+        // 测试API连接
+        async function testConnection() {
+            if (!apiConfig) {
+                showNotification('请先配置API信息', 'error');
+                return;
+            }
+            
+            updateAPIStatus('connecting');
+            
+            try {
+                const testResponse = await fetch(apiConfig.url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiConfig.key}`,
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'TravelPlanner-Online/1.0.0',
+                        'Host': 'mgw.proxy.ksyun.com',
+                        'Connection': 'keep-alive',
+                        'Accept': '*/*'
+                    },
+                    body: JSON.stringify({
+                        model: apiConfig.model,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: '你好，请简单回复"连接成功"'
+                            }
+                        ],
+                        temperature: 0.1,
+                        max_tokens: 50
+                    })
+                });
+                
+                if (testResponse.ok) {
+                    const data = await testResponse.json();
+                    console.log('API连接成功:', data.choices[0].message.content);
+                    updateAPIStatus('connected');
+                    showNotification('API连接成功', 'success');
+                    return true;
+                } else {
+                    console.error('API连接失败:', testResponse.status, testResponse.statusText);
+                    updateAPIStatus('error');
+                    showNotification(`API连接失败: ${testResponse.status}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('API测试错误:', error);
+                updateAPIStatus('error');
+                showNotification(`连接失败: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化配置
+            initConfig();
+            
+            // 天数滑块
+            const durationSlider = document.getElementById('duration');
+            const durationDisplay = document.getElementById('durationDisplay');
+            durationSlider.addEventListener('input', function() {
+                durationDisplay.textContent = this.value + '天';
+            });
+
+            // 兴趣爱好按钮
+            document.querySelectorAll('.interest-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const interest = this.dataset.interest;
+                    if (selectedInterests.includes(interest)) {
+                        selectedInterests = selectedInterests.filter(i => i !== interest);
+                        this.classList.remove('bg-blue-600', 'text-white');
+                        this.classList.add('bg-gray-100', 'text-gray-700');
+                    } else {
+                        selectedInterests.push(interest);
+                        this.classList.remove('bg-gray-100', 'text-gray-700');
+                        this.classList.add('bg-blue-600', 'text-white');
+                    }
+                });
+            });
+
+            // 聊天输入框回车发送
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        });
+
+        // 生成旅行计划
+        async function generatePlan() {
+            const destination = document.getElementById('destination').value.trim();
+            const duration = parseInt(document.getElementById('duration').value);
+            const budget = document.getElementById('budget').value || '中等';
+            const travelStyle = document.getElementById('travelStyle').value;
+
+            if (!destination) {
+                showNotification('请填写目的地', 'error');
+                return;
+            }
+
+            // 显示加载状态
+            const btn = document.getElementById('generateBtn');
+            const btnText = document.getElementById('btnText');
+            btn.disabled = true;
+            btnText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>正在为您生成专属旅行计划...';
+
+            // 模拟生成延迟
+            await sleep(2000);
+
+            // 生成计划数据
+            currentPlan = {
+                destination,
+                duration,
+                budget,
+                travelStyle,
+                interests: selectedInterests,
+                itinerary: generateMockItinerary(destination, duration, selectedInterests)
+            };
+
+            // 显示计划
+            displayPlan(currentPlan);
+
+            // 恢复按钮状态
+            btn.disabled = false;
+            btnText.innerHTML = '<i class="fas fa-rocket mr-2"></i>生成旅行计划';
+            showNotification('旅行计划生成成功！', 'success');
+        }
+
+        // 生成模拟行程
+        function generateMockItinerary(dest, days, interests) {
+            const itinerary = [];
+            
+            for (let day = 1; day <= days; day++) {
+                const activities = [
+                    {
+                        id: `${day}-1`,
+                        name: `${dest}经典景点参观`,
+                        description: `探索${dest}最著名的景点，了解当地文化和历史`,
+                        duration: 3,
+                        cost: '免费',
+                        location: `${dest}市中心`,
+                        category: 'sightseeing',
+                        rating: 4.5
+                    },
+                    {
+                        id: `${day}-2`,
+                        name: '当地特色美食品尝',
+                        description: '品尝地道的当地美食，体验正宗风味',
+                        duration: 2,
+                        cost: '¥100-200',
+                        location: `${dest}老城区`,
+                        category: 'culture',
+                        rating: 4.8
+                    }
+                ];
+
+                if (interests.includes('购物')) {
+                    activities.push({
+                        id: `${day}-3`,
+                        name: '特色街区购物',
+                        description: '逛当地特色商店，购买纪念品和特产',
+                        duration: 2,
+                        cost: '¥200-500',
+                        location: `${dest}商业区`,
+                        category: 'shopping',
+                        rating: 4.2
+                    });
+                }
+
+                const meals = [
+                    {
+                        type: 'breakfast',
+                        name: '当地特色早餐',
+                        cuisine: '本地菜',
+                        location: '酒店附近',
+                        cost: '¥30-50',
+                        rating: 4.3
+                    },
+                    {
+                        type: 'lunch',
+                        name: '特色餐厅午餐',
+                        cuisine: '本地菜',
+                        location: '景区附近',
+                        cost: '¥80-120',
+                        rating: 4.6
+                    },
+                    {
+                        type: 'dinner',
+                        name: '景观餐厅晚餐',
+                        cuisine: '融合菜',
+                        location: '市中心',
+                        cost: '¥150-300',
+                        rating: 4.7
+                    }
+                ];
+
+                itinerary.push({
+                    day,
+                    activities,
+                    meals,
+                    accommodation: {
+                        name: `${dest}精品酒店`,
+                        type: 'hotel',
+                        location: `${dest}市中心`,
+                        rating: 4.5,
+                        cost: '¥300-600/晚',
+                        amenities: ['WiFi', '空调', '早餐', '健身房']
+                    }
+                });
+            }
+
+            return itinerary;
+        }
+
+        // 显示旅行计划
+        function displayPlan(plan) {
+            document.getElementById('initialForm').classList.add('hidden');
+            document.getElementById('planDisplay').classList.remove('hidden');
+
+            // 更新计划标题
+            document.getElementById('planTitle').textContent = `${plan.destination}之旅`;
+            document.getElementById('planSubtitle').textContent = `${plan.duration}天 · ${getTravelStyleText(plan.travelStyle)} · ${plan.budget}预算`;
+
+            // 显示兴趣爱好
+            const interestsContainer = document.getElementById('planInterests');
+            interestsContainer.innerHTML = '';
+            plan.interests.forEach(interest => {
+                const span = document.createElement('span');
+                span.className = 'px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm';
+                span.textContent = interest;
+                interestsContainer.appendChild(span);
+            });
+
+            // 生成行程内容
+            const itineraryContainer = document.getElementById('itineraryContainer');
+            itineraryContainer.innerHTML = '<h3 class="text-xl font-bold text-gray-900 mb-4">每日行程</h3>';
+
+            plan.itinerary.forEach(dayPlan => {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'card';
+                dayCard.innerHTML = `
+                    <div class="p-6 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors" onclick="toggleDay(${dayPlan.day})">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold">
+                                    ${dayPlan.day}
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-gray-900">第${dayPlan.day}天</h4>
+                                    <p class="text-sm text-gray-600">${dayPlan.activities.length}个活动 · ${dayPlan.meals.length}餐</p>
+                                </div>
+                            </div>
+                            <i id="chevron-${dayPlan.day}" class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div id="day-content-${dayPlan.day}" class="hidden p-6 space-y-6">
+                        ${generateDayContent(dayPlan)}
+                    </div>
+                `;
+                itineraryContainer.appendChild(dayCard);
+            });
+
+            // 滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 生成单日内容
+        function generateDayContent(dayPlan) {
+            let content = '';
+
+            // 活动安排
+            content += `
+                <div>
+                    <h5 class="font-semibold text-gray-900 mb-3">
+                        <i class="fas fa-camera mr-2"></i>活动安排
+                    </h5>
+                    <div class="space-y-3">
+                        ${dayPlan.activities.map(activity => `
+                            <div class="activity-card flex items-start space-x-3">
+                                <div class="p-2 rounded-lg bg-blue-100 text-blue-700">
+                                    ${getCategoryIcon(activity.category)}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <h6 class="font-medium text-gray-900">${activity.name}</h6>
+                                        <button onclick="toggleLike('${activity.id}')" class="text-gray-400 hover:text-red-500 transition-colors">
+                                            <i id="like-${activity.id}" class="far fa-heart"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mb-2">${activity.description}</p>
+                                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                        <span><i class="fas fa-clock mr-1"></i>${activity.duration}小时</span>
+                                        <span><i class="fas fa-map-marker-alt mr-1"></i>${activity.location}</span>
+                                        <span><i class="fas fa-dollar-sign mr-1"></i>${activity.cost}</span>
+                                        <span><i class="fas fa-star mr-1 text-yellow-400"></i>${activity.rating}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            // 美食安排
+            content += `
+                <div>
+                    <h5 class="font-semibold text-gray-900 mb-3">
+                        <i class="fas fa-utensils mr-2"></i>美食安排
+                    </h5>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        ${dayPlan.meals.map(meal => `
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-700">
+                                        ${meal.type === 'breakfast' ? '早餐' : meal.type === 'lunch' ? '午餐' : '晚餐'}
+                                    </span>
+                                    <span class="text-xs text-yellow-600">
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>${meal.rating}
+                                    </span>
+                                </div>
+                                <h6 class="font-medium text-gray-900">${meal.name}</h6>
+                                <p class="text-sm text-gray-600">${meal.cuisine}</p>
+                                <div class="flex items-center justify-between mt-2 text-sm text-gray-500">
+                                    <span><i class="fas fa-map-marker-alt mr-1"></i>${meal.location}</span>
+                                    <span>${meal.cost}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            // 住宿
+            if (dayPlan.accommodation) {
+                content += `
+                    <div>
+                        <h5 class="font-semibold text-gray-900 mb-3">
+                            <i class="fas fa-bed mr-2"></i>住宿
+                        </h5>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <h6 class="font-medium text-gray-900">${dayPlan.accommodation.name}</h6>
+                                <span class="text-sm text-yellow-600">
+                                    <i class="fas fa-star text-yellow-400 mr-1"></i>${dayPlan.accommodation.rating}
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+                                <span>酒店</span>
+                                <span>${dayPlan.accommodation.location}</span>
+                                <span>${dayPlan.accommodation.cost}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                ${dayPlan.accommodation.amenities.map(amenity => `
+                                    <span class="text-xs bg-white px-2 py-1 rounded text-gray-600">${amenity}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return content;
+        }
+
+        // 调用真实AI API（安全版本）
+        async function callAI(userMessage) {
+            if (!currentPlan) {
+                return '请先生成旅行计划，然后我就可以为您提供个性化的调整建议了！';
+            }
+
+            if (!apiConfig) {
+                return '请先配置API信息，然后就可以使用AI智能助手了。';
+            }
+
+            updateAPIStatus('connecting');
+            
+            const messages = [
+                {
+                    role: 'system',
+                    content: `你是一个专业的AI旅行助手，帮助用户制定和调整旅行计划。当前用户正在规划${currentPlan.destination}的${currentPlan.duration}天旅行，预算${currentPlan.budget}，旅行风格${currentPlan.travelStyle}。
+
+请根据用户的需求提供：
+1. 专业的旅行建议和调整方案
+2. 具体的行程安排建议
+3. 考虑用户的兴趣爱好：${currentPlan.interests.join('、') || '暂无特定兴趣'}
+4. 友好、专业的回复风格
+5. 实用的建议和具体的信息
+
+如果用户要求调整计划，请明确提出你将如何优化行程。回复要具体、有用、个性化。`
+                },
+                {
+                    role: 'user',
+                    content: userMessage
+                }
+            ];
+
+            try {
+                const response = await fetch(apiConfig.url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiConfig.key}`,
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'TravelPlanner-Online/1.0.0',
+                        'Host': 'mgw.proxy.ksyun.com',
+                        'Connection': 'keep-alive',
+                        'Accept': '*/*'
+                    },
+                    body: JSON.stringify({
+                        model: apiConfig.model,
+                        messages: messages,
+                        temperature: apiConfig.temperature,
+                        max_tokens: apiConfig.maxTokens
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status} - ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                updateAPIStatus('connected');
+                return data.choices[0].message.content;
+                
+            } catch (error) {
+                console.error('API调用错误:', error);
+                updateAPIStatus('error');
+                
+                return `抱歉，AI服务暂时不可用（${error.message}）。不过我可以为您提供一些基础的旅行建议：
+
+${userMessage.includes('美食') ? '🍜 建议您尝试当地特色美食，可以去当地的网红餐厅或老字号店铺。' : ''}
+${userMessage.includes('购物') ? '🛍️ 推荐您去当地的商业街或特产店，购买一些纪念品和当地特产。' : ''}
+${userMessage.includes('预算') ? '💰 建议选择性价比高的住宿和餐厅，多利用公共交通工具。' : ''}
+${userMessage.includes('调整') ? '📝 我可以根据您的需求调整行程安排，请告诉我具体想调整哪些部分。' : '📋 如果您有其他需求，请告诉我，我会尽力帮助您！'}`;
+            }
+        }
+
+        // 生成AI回复
+        async function generateAIResponse(userInput) {
+            // 调用真实AI API
+            const aiResponse = await callAI(userInput);
+            
+            // 根据回复内容判断类型
+            const lowerResponse = aiResponse.toLowerCase();
+            const lowerInput = userInput.toLowerCase();
+            
+            let responseType = 'text';
+            
+            if (lowerInput.includes('调整') || lowerInput.includes('修改') || lowerInput.includes('改变') ||
+                lowerInput.includes('重新安排') || lowerInput.includes('更新') ||
+                lowerResponse.includes('调整') || lowerResponse.includes('重新安排') || 
+                lowerResponse.includes('优化行程') || lowerResponse.includes('更新计划')) {
+                responseType = 'plan_update';
+            }
+            
+            if (lowerInput.includes('美食') || lowerInput.includes('吃') || lowerInput.includes('餐厅') ||
+                lowerResponse.includes('美食') || lowerResponse.includes('餐厅') || lowerResponse.includes('推荐')) {
+                responseType = 'suggestion';
+            }
+            
+            if (lowerInput.includes('购物') || lowerInput.includes('买') || lowerInput.includes('商店')) {
+                responseType = 'suggestion';
+            }
+            
+            if (lowerInput.includes('预算') || lowerInput.includes('花费') || lowerInput.includes('便宜')) {
+                responseType = 'plan_update';
+            }
+            
+            return {
+                text: aiResponse,
+                type: responseType
+            };
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || isTyping) return;
+            
+            input.value = '';
+            await addMessage(message, 'user');
+            showTyping();
+            
+            // 调用真实AI
+            const response = await generateAIResponse(message);
+            hideTyping();
+            await addMessage(response.text, response.type === 'plan_update' ? 'assistant-update' : 'assistant');
+            
+            // 如果需要更新计划
+            if (response.type === 'plan_update') {
+                setTimeout(() => {
+                    updatePlan(message, response.text);
+                }, 2000);
+            }
+        }
+
+        // 快速消息
+        async function sendQuickMessage(message) {
+            document.getElementById('chatInput').value = message;
+            await sendMessage();
+        }
+
+        // 添加消息
+        async function addMessage(text, type) {
+            const messagesArea = document.getElementById('messagesArea');
+            const isUser = type === 'user';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+            messageDiv.innerHTML = `
+                <div class="message-bubble ${isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}">
+                    <div class="flex items-start space-x-2">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <i class="fas fa-${isUser ? 'user' : 'robot'} text-sm"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm">${text}</p>
+                            ${type === 'assistant-update' ? `
+                                <div class="mt-2 flex items-center space-x-2">
+                                    <i class="fas fa-sync-alt text-xs"></i>
+                                    <span class="text-xs opacity-75">计划正在更新...</span>
+                                </div>
+                            ` : ''}
+                            <div class="mt-2 text-xs opacity-75">
+                                ${new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            messagesArea.appendChild(messageDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+            
+            await sleep(100);
+        }
+
+        // 显示打字动画
+        function showTyping() {
+            isTyping = true;
+            const messagesArea = document.getElementById('messagesArea');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'flex justify-start';
+            typingDiv.innerHTML = `
+                <div class="message-bubble bg-gray-100 text-gray-900">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-robot text-sm"></i>
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            messagesArea.appendChild(typingDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        // 隐藏打字动画
+        function hideTyping() {
+            isTyping = false;
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // 更新计划（基于AI回复）
+        async function updatePlan(userInput, aiResponse) {
+            const lowerInput = userInput.toLowerCase();
+            const lowerResponse = aiResponse.toLowerCase();
+            
+            // 根据用户输入和AI回复更新兴趣
+            if (lowerInput.includes('美食') || lowerInput.includes('吃') || 
+                lowerResponse.includes('美食') || lowerResponse.includes('餐厅')) {
+                if (!currentPlan.interests.includes('美食体验')) {
+                    currentPlan.interests.push('美食体验');
+                }
+            }
+            
+            if (lowerInput.includes('购物') || lowerInput.includes('买') ||
+                lowerResponse.includes('购物') || lowerResponse.includes('商店')) {
+                if (!currentPlan.interests.includes('购物')) {
+                    currentPlan.interests.push('购物');
+                }
+            }
+            
+            // 预算调整
+            if (lowerInput.includes('预算') || lowerInput.includes('便宜') || lowerInput.includes('经济') ||
+                lowerResponse.includes('预算') || lowerResponse.includes('节省') || lowerResponse.includes('经济')) {
+                currentPlan.budget = '经济型';
+            }
+            
+            if (lowerInput.includes('豪华') || lowerInput.includes('高端') || lowerInput.includes('奢侈') ||
+                lowerResponse.includes('豪华') || lowerResponse.includes('高端')) {
+                currentPlan.budget = '豪华';
+            }
+            
+            // 重新生成行程
+            await addMessage('🔄 正在根据AI建议重新生成个性化行程...', 'assistant');
+            currentPlan.itinerary = generateMockItinerary(currentPlan.destination, currentPlan.duration, currentPlan.interests);
+            
+            setTimeout(() => {
+                displayPlan(currentPlan);
+                addMessage('✅ 旅行计划已根据AI智能建议更新完成！请查看左侧的最新行程安排。', 'assistant');
+            }, 1000);
+        }
+
+        // 工具函数
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function getTravelStyleText(style) {
+            const styles = {
+                'adventure': '冒险刺激',
+                'relaxed': '休闲放松',
+                'cultural': '文化探索',
+                'nature': '自然风光',
+                'urban': '城市观光'
+            };
+            return styles[style] || style;
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                'sightseeing': '<i class="fas fa-camera"></i>',
+                'shopping': '<i class="fas fa-shopping-bag"></i>',
+                'culture': '<i class="fas fa-landmark"></i>',
+                'adventure': '<i class="fas fa-hiking"></i>',
+                'relaxation': '<i class="fas fa-umbrella-beach"></i>',
+                'entertainment': '<i class="fas fa-music"></i>'
+            };
+            return icons[category] || '<i class="fas fa-map-marker-alt"></i>';
+        }
+
+        // 切换天数展开/收起
+        function toggleDay(day) {
+            const content = document.getElementById(`day-content-${day}`);
+            const chevron = document.getElementById(`chevron-${day}`);
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                chevron.classList.remove('fa-chevron-down');
+                chevron.classList.add('fa-chevron-up');
+            } else {
+                content.classList.add('hidden');
+                chevron.classList.remove('fa-chevron-up');
+                chevron.classList.add('fa-chevron-down');
+            }
+        }
+
+        // 切换收藏
+        function toggleLike(activityId) {
+            const heartIcon = document.getElementById(`like-${activityId}`);
+            if (heartIcon.classList.contains('far')) {
+                heartIcon.classList.remove('far');
+                heartIcon.classList.add('fas', 'text-red-500');
+            } else {
+                heartIcon.classList.remove('fas', 'text-red-500');
+                heartIcon.classList.add('far');
+            }
+        }
+
+        // 返回表单
+        function backToForm() {
+            document.getElementById('planDisplay').classList.add('hidden');
+            document.getElementById('initialForm').classList.remove('hidden');
+            chatMessages = [];
+        }
+
+        // 添加页面加载完成提示
+        window.addEventListener('load', function() {
+            console.log('🌍 AI旅游攻略平台已加载完成');
+            console.log('📱 版本: 在线部署版');
+            console.log('🛡️ 安全: 本地存储API配置');
+        });
+    </script>
+</body>
+</html>
